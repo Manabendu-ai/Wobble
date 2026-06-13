@@ -24,8 +24,7 @@ public class ImageController {
     @PostMapping("/extract")
     public ResponseEntity<String> extract(@RequestParam("file")MultipartFile file)
         throws Exception {
-        String base64 = geminiService.extract(file);
-        return ResponseEntity.ok("Received: "+base64);
+        return ResponseEntity.ok(geminiService.extract(file));
     }
 
 }
