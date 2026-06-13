@@ -1,0 +1,13 @@
+package riku.spring.wobble;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class WobbleApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(WobbleApplication.class, args);
+	}
+
+}
