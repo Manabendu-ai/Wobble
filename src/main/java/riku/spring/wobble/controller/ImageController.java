@@ -11,11 +11,11 @@ import riku.spring.wobble.dto.ExplainRequest;
 import riku.spring.wobble.dto.ExplainResponse;
 import riku.spring.wobble.service.GeminiService;
 
-import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/image")
 @RequiredArgsConstructor
+@CrossOrigin("*")
 public class ImageController {
 
 

@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wobble — See It. Understand It. Master It.</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <style>
+    /* ── Reset ── */
+    *{margin:0;padding:0;box-sizing:border-box}
+
+    /* ── Theme tokens ── */
+    :root{
+      --bg:#09070F;
+      --bg2:#131020;
+      --bg3:#1B1430;
+      --card:rgba(22,18,32,0.72);
+      --card-solid:#161220;
+      --border:rgba(109,93,246,0.18);
+      --border2:rgba(109,93,246,0.40);
+      --purple:#6D5DF6;
+      --purple2:#9D7CFF;
+      --purple3:#B8A4FF;
+      --text:#FFFFFF;
+      --text2:#B5B5C3;
+      --text3:#6A6A7C;
+      --glow:rgba(109,93,246,0.28);
+      --glow2:rgba(109,93,246,0.13);
+      --glow3:rgba(109,93,246,0.06);
+      --user-grad:linear-gradient(135deg,#6D5DF6 0%,#9D7CFF 100%);
+      --input-bg:rgba(18,14,30,0.88);
+      --formula-bg:rgba(109,93,246,0.07);
+      --scrollbar:rgba(109,93,246,0.22);
+    }
+    [data-theme="light"]{
+      --bg:#F0EBFF;
+      --bg2:#E8DFFF;
+      --bg3:#D8CCFF;
+      --card:rgba(255,255,255,0.78);
+      --card-solid:#FFFFFF;
+      --border:rgba(100,72,240,0.22);
+      --border2:rgba(100,72,240,0.48);
+      --purple:#6448F0;
+      --purple2:#4A30C8;
+      --purple3:#2E1A96;
+      --text:#16101F;
+      --text2:#3D3058;
+      --text3:#7C6FA0;
+      --glow:rgba(100,72,240,0.28);
+      --glow2:rgba(100,72,240,0.14);
+      --glow3:rgba(100,72,240,0.07);
+      --user-grad:linear-gradient(135deg,#6448F0 0%,#9B7CFF 100%);
+      --input-bg:rgba(240,235,255,0.97);
+      --formula-bg:rgba(100,72,240,0.08);
+      --scrollbar:rgba(100,72,240,0.25);
+    }
+
+    /* ── Body ── */
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',system-ui,sans-serif;
+      min-height:100vh;
+      overflow:hidden;
+      transition:background .45s ease,color .3s ease;
+      line-height:1.6;
+    }
+    [data-theme="light"] body{
+      background:linear-gradient(135deg,#EDE6FF 0%,#E0D4FF 45%,#D0BFFF 100%);
+    }
+
+    /* ── Animated background ── */
+    #bg-canvas{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+    }
+
+    /* ── App shell ── */
+    .app{
+      position:relative;
+      z-index:1;
+      display:flex;
+      flex-direction:column;
+      height:100vh;
+      max-width:880px;
+      margin:0 auto;
+      padding:0 1.25rem;
+    }
+
+    /* ── Header ── */
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:1.1rem 0 .85rem;
+      flex-shrink:0;
+      border-bottom:1px solid var(--border);
+    }
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:.65rem;
+      text-decoration:none;
+    }
+    .logo-icon{
+      width:36px;
+      height:36px;
+      background:var(--user-grad);
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.15rem;
+      box-shadow:0 0 22px var(--glow);
+      flex-shrink:0;
+      transition:box-shadow .3s;
+    }
+    .logo:hover .logo-icon{box-shadow:0 0 30px var(--glow),0 0 60px var(--glow2)}
+    .logo-name{
+      font-size:1.1rem;
+      font-weight:700;
+      letter-spacing:-.025em;
+      color:var(--text);
+    }
+    .header-center{text-align:center;flex:1}
+    .header-title{
+      font-size:1rem;
+      font-weight:700;
+      letter-spacing:-.02em;
+      background:var(--user-grad);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .header-sub{
+      font-size:.68rem;
+      color:var(--text3);
+      letter-spacing:.045em;
+      text-transform:uppercase;
+      margin-top:2px;
+    }
+    .header-right{display:flex;align-items:center;gap:.6rem}
+    .theme-btn{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:100px;
+      padding:.32rem .85rem;
+      color:var(--text2);
+      font-size:.78rem;
+      cursor:pointer;
+      transition:all .25s;
+      display:flex;
+      align-items:center;
+      gap:.4rem;
+      backdrop-filter:blur(14px);
+      white-space:nowrap;
+      font-family:inherit;
+    }
+    .theme-btn:hover{
+      border-color:var(--border2);
+      color:var(--text);
+      box-shadow:0 0 14px var(--glow2);
+    }
+
+    /* ── Chat area ── */
+    .chat-area{
+      flex:1;
+      overflow-y:auto;
+      padding:1.25rem 0 .75rem;
+      display:flex;
+      flex-direction:column;
+      gap:1.4rem;
+      scroll-behavior:smooth;
+    }
+    .chat-area::-webkit-scrollbar{width:4px}
+    .chat-area::-webkit-scrollbar-track{background:transparent}
+    .chat-area::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:4px}
+
+    /* ── Empty state ── */
+    .empty-state{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      flex:1;
+      padding:2.5rem 1rem 1rem;
+      text-align:center;
+      gap:1.4rem;
+      animation:fadeUp .6s ease both;
+    }
+    .empty-logo{
+      width:72px;
+      height:72px;
+      background:var(--user-grad);
+      border-radius:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:2rem;
+      box-shadow:0 0 40px var(--glow),0 0 80px var(--glow2);
+      animation:floatLogo 4s ease-in-out infinite;
+    }
+    .empty-heading{
+      font-size:1.9rem;
+      font-weight:700;
+      letter-spacing:-.035em;
+      line-height:1.2;
+      max-width:440px;
+      background:linear-gradient(135deg,var(--text) 0%,var(--text2) 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .empty-sub{
+      font-size:.88rem;
+      color:var(--text3);
+      max-width:340px;
+      line-height:1.55;
+    }
+    .suggestion-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:.8rem;
+      max-width:520px;
+      width:100%;
+      margin-top:.3rem;
+    }
+    .suggestion-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:.95rem 1.1rem;
+      text-align:left;
+      cursor:pointer;
+      transition:all .28s cubic-bezier(.34,1.56,.64,1);
+      backdrop-filter:blur(16px);
+      display:flex;
+      align-items:flex-start;
+      gap:.7rem;
+      animation:fadeUp .55s ease both;
+    }
+    .suggestion-card:nth-child(1){animation-delay:.08s}
+    .suggestion-card:nth-child(2){animation-delay:.14s}
+    .suggestion-card:nth-child(3){animation-delay:.2s}
+    .suggestion-card:nth-child(4){animation-delay:.26s}
+    .suggestion-card:hover{
+      border-color:var(--border2);
+      transform:translateY(-3px) scale(1.02);
+      box-shadow:0 10px 34px var(--glow2),0 0 0 1px var(--border2);
+    }
+    .suggestion-card:active{transform:translateY(-1px) scale(1)}
+    .sug-icon{width:32px;height:32px;flex-shrink:0;border-radius:8px;background:var(--glow2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:background .25s}
+    .sug-icon svg{width:16px;height:16px;stroke:var(--purple2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+    .suggestion-card:hover .sug-icon{background:var(--glow);border-color:var(--purple)}
+    .suggestion-card:hover .sug-icon svg{stroke:var(--purple)}
+    .sug-text{font-size:.82rem;color:var(--text2);line-height:1.45;font-weight:500}
+
+    /* ── Message rows ── */
+    .msg-row{
+      display:flex;
+      flex-direction:column;
+      gap:.35rem;
+      animation:fadeUp .35s ease both;
+    }
+    .msg-row.user{align-items:flex-end}
+    .msg-row.ai{align-items:flex-start}
+
+    .bubble{
+      max-width:76%;
+      border-radius:20px;
+      padding:.95rem 1.15rem;
+      line-height:1.7;
+      font-size:.9rem;
+      word-break:break-word;
+    }
+    .bubble.user{
+      background:var(--user-grad);
+      color:#fff;
+      border-radius:20px 20px 5px 20px;
+      box-shadow:0 5px 24px var(--glow);
+    }
+    .bubble.ai{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:20px 20px 20px 5px;
+      color:var(--text);
+      backdrop-filter:blur(16px);
+      box-shadow:0 4px 20px var(--glow3);
+    }
+    .bubble.ai strong{color:var(--purple2);font-weight:600}
+    .bubble.ai code{
+      background:rgba(109,93,246,0.12);
+      border:1px solid var(--border);
+      border-radius:5px;
+      padding:.15em .4em;
+      font-size:.85em;
+      font-family:'JetBrains Mono','Fira Code','Consolas',monospace;
+      color:var(--purple3);
+    }
+
+    /* Formula block */
+    .formula-block{
+      background:var(--formula-bg);
+      border:1px solid var(--border2);
+      border-radius:12px;
+      padding:.85rem 1rem .85rem 1rem;
+      margin:.7rem 0;
+      overflow-x:auto;
+      position:relative;
+    }
+    .formula-block .copy-btn{
+      position:absolute;
+      top:.5rem;
+      right:.55rem;
+      background:var(--card-solid);
+      border:1px solid var(--border);
+      color:var(--text3);
+      font-size:.68rem;
+      padding:.22rem .55rem;
+      border-radius:6px;
+      cursor:pointer;
+      transition:all .2s;
+      font-family:inherit;
+    }
+    .formula-block .copy-btn:hover{color:var(--text);border-color:var(--border2);background:var(--glow2)}
+    .formula-block .copy-btn.copied{color:var(--purple2);border-color:var(--border2)}
+
+    /* Image bubbles */
+    .img-preview-bubble{
+      max-width:220px;
+      max-height:160px;
+      border-radius:14px;
+      object-fit:cover;
+      border:1px solid var(--border2);
+      box-shadow:0 5px 20px var(--glow2);
+      display:block;
+    }
+
+    /* ── Typing indicator ── */
+    .typing-bubble{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:20px 20px 20px 5px;
+      padding:.7rem 1rem;
+      display:flex;
+      align-items:center;
+      gap:.35rem;
+      backdrop-filter:blur(16px);
+    }
+    .dot{
+      width:7px;height:7px;
+      border-radius:50%;
+      background:var(--purple2);
+      animation:bounce 1s infinite ease-in-out;
+    }
+    .dot:nth-child(2){animation-delay:.16s}
+    .dot:nth-child(3){animation-delay:.32s}
+
+    /* ── Input area ── */
+    .input-area{
+      flex-shrink:0;
+      padding:.85rem 0 1.35rem;
+    }
+    .input-wrap{
+      background:var(--input-bg);
+      border:1px solid var(--border);
+      border-radius:22px;
+      backdrop-filter:blur(22px);
+      transition:border-color .25s,box-shadow .25s;
+      box-shadow:0 6px 32px var(--glow2);
+    }
+    .input-wrap:focus-within{
+      border-color:var(--border2);
+      box-shadow:0 0 0 3px var(--glow2),0 8px 36px var(--glow);
+    }
+    .input-wrap.drag-over{
+      border-color:var(--purple);
+      box-shadow:0 0 0 3px var(--glow),0 8px 36px var(--glow);
+    }
+
+    /* Image preview row */
+    .img-preview-row{
+      display:none;
+      align-items:center;
+      gap:.65rem;
+      padding:.8rem 1.1rem .4rem;
+      border-bottom:1px solid var(--border);
+    }
+    .img-preview-row.visible{display:flex}
+    .thumb-wrap{position:relative;display:inline-block}
+    .thumb{
+      width:56px;height:56px;
+      border-radius:10px;
+      object-fit:cover;
+      border:1px solid var(--border2);
+      display:block;
+    }
+    .thumb-remove{
+      position:absolute;
+      top:-7px;right:-7px;
+      width:20px;height:20px;
+      background:var(--purple);
+      border:none;
+      border-radius:50%;
+      color:#fff;
+      font-size:.65rem;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 10px var(--glow);
+      transition:transform .2s;
+    }
+    .thumb-remove:hover{transform:scale(1.15)}
+    .img-label{font-size:.78rem;color:var(--text3);line-height:1.3}
+    .img-label span{display:block;color:var(--text2);font-weight:500;font-size:.82rem}
+
+    /* Controls row */
+    .input-row{
+      display:flex;
+      align-items:flex-end;
+      gap:.55rem;
+      padding:.65rem .9rem;
+    }
+    .icon-btn{
+      width:36px;height:36px;
+      border-radius:50%;
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--text3);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:all .22s;
+      flex-shrink:0;
+      font-size:1rem;
+      font-family:inherit;
+    }
+    .icon-btn:hover{
+      border-color:var(--border2);
+      color:var(--purple2);
+      background:var(--glow2);
+      transform:scale(1.08);
+    }
+    #file-input{display:none}
+    .text-input{
+      flex:1;
+      background:transparent;
+      border:none;
+      outline:none;
+      color:var(--text);
+      font-size:.9rem;
+      resize:none;
+      max-height:130px;
+      min-height:24px;
+      line-height:1.55;
+      padding:.1rem 0;
+      font-family:inherit;
+      overflow-y:auto;
+    }
+    .text-input::placeholder{color:var(--text3)}
+    .text-input::-webkit-scrollbar{width:3px}
+    .text-input::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:3px}
+    .send-btn{
+      width:38px;height:38px;
+      border-radius:50%;
+      background:var(--user-grad);
+      border:none;
+      color:#fff;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:all .22s cubic-bezier(.34,1.56,.64,1);
+      flex-shrink:0;
+      box-shadow:0 0 16px var(--glow);
+      font-size:1rem;
+    }
+    .send-btn:hover{transform:scale(1.12);box-shadow:0 0 26px var(--glow)}
+    .send-btn:active{transform:scale(.95)}
+    .send-btn:disabled{opacity:.38;cursor:default;transform:none;box-shadow:none}
+    .send-btn svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+    /* ── Footer ── */
+    footer{
+      text-align:center;
+      padding:.7rem 0 1rem;
+      font-size:.68rem;
+      color:var(--text3);
+      flex-shrink:0;
+      letter-spacing:.01em;
+    }
+    footer .accent{color:var(--text2)}
+
+    /* ── Loading ring ── */
+    .ring{
+      display:inline-block;
+      width:18px;height:18px;
+      border:2px solid var(--border2);
+      border-top-color:var(--purple);
+      border-radius:50%;
+      animation:spin .75s linear infinite;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(14px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    @keyframes bounce{
+      0%,80%,100%{transform:translateY(0);opacity:.7}
+      40%{transform:translateY(-8px);opacity:1}
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes floatLogo{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-8px)}
+    }
+
+    /* ── Responsive ── */
+    @media(max-width:600px){
+      .suggestion-grid{grid-template-columns:1fr}
+      .empty-heading{font-size:1.45rem}
+      .bubble{max-width:90%}
+      .header-center .header-sub{display:none}
+    }
+  </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<div class="app">
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 18 12 10 16 18 20 6"/></svg></div>
+      <span class="logo-name">Wobble</span>
+    </div>
+    <div class="header-center">
+      <div class="header-title">Wobble</div>
+      <div class="header-sub" id="header-sub">See It. Understand It. Master It.</div>
+    </div>
+    <div class="header-right">
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">
+        <span id="theme-icon">☀</span>
+        <span id="theme-label">Light</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Chat area -->
+  <div class="chat-area" id="chat-area">
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state">
+      <div class="empty-logo"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 8 18 12 10 16 18 20 6"/></svg></div>
+      <div class="empty-heading">What would you like to understand today?</div>
+      <div class="empty-sub">Upload an image of any equation, or type your math question below.</div>
+      <div class="suggestion-grid">
+        <div class="suggestion-card" onclick="useSuggestion('Extract all formulas from my uploaded image and explain what each one means')">
+          <span class="sug-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M7 5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1"/></svg></span>
+          <span class="sug-text">Extract formulas from images</span>
+        </div>
+        <div class="suggestion-card" onclick="useSuggestion('Explain what E = mc² means, its derivation, and real-world applications')">
+          <span class="sug-icon"><svg viewBox="0 0 24 24"><path d="M4 19 L8 5 L12 14 L15 9 L20 19"/><line x1="3" y1="19" x2="21" y2="19"/></svg></span>
+          <span class="sug-text">Explain mathematical expressions</span>
+        </div>
+        <div class="suggestion-card" onclick="useSuggestion('Walk me through the quadratic formula step by step with a worked example')">
+          <span class="sug-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
+          <span class="sug-text">Understand equations instantly</span>
+        </div>
+        <div class="suggestion-card" onclick="useSuggestion('Teach me the concept of derivatives from first principles, with intuition and examples')">
+          <span class="sug-icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+          <span class="sug-text">Learn concepts step-by-step</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input area -->
+  <div class="input-area">
+    <div class="input-wrap" id="input-wrap">
+      <!-- Image preview -->
+      <div class="img-preview-row" id="img-preview-row">
+        <div class="thumb-wrap">
+          <img id="img-thumb" class="thumb" src="" alt="preview" />
+          <button class="thumb-remove" onclick="removeImage()" title="Remove image">✕</button>
+        </div>
+        <div class="img-label">
+          <span id="img-name">Image ready</span>
+          Drop to attach or click ✕ to remove
+        </div>
+      </div>
+      <!-- Text + controls -->
+      <div class="input-row">
+        <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="Upload image">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <input type="file" id="file-input" accept="image/*" onchange="handleFile(event)" />
+        <textarea
+                class="text-input"
+                id="text-input"
+                rows="1"
+                placeholder="Ask about any formula, equation, or upload an image…"
+                onkeydown="handleKey(event)"
+                oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Send">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    © Wobble — Built with curiosity by <span class="accent">Manabendu Karfa</span>
+    &nbsp;·&nbsp; AI-powered formula understanding and learning platform.
+  </footer>
+</div>
+
+<script>
+  // ═══════════════════════════════════════════════════════
+  // BACKGROUND ANIMATION
+  // ═══════════════════════════════════════════════════════
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, orbs = [], particles = [], mx = window.innerWidth/2, my = window.innerHeight/2, t = 0;
+
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initOrbs(){
+    orbs = Array.from({length:6}, (_,i) => ({
+      x: Math.random()*W, y: Math.random()*H,
+      r: 160 + Math.random()*260,
+      vx: (Math.random()-.5)*.15, vy: (Math.random()-.5)*.15,
+      phase: Math.random()*Math.PI*2,
+      color: ['109,93,246','157,124,255','90,66,212'][i%3]
+    }));
+  }
+
+  function initParticles(){
+    particles = Array.from({length:55}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      r: .7 + Math.random()*1.8,
+      vx: (Math.random()-.5)*.28, vy: (Math.random()-.5)*.28,
+      a: .25 + Math.random()*.5,
+      phase: Math.random()*Math.PI*2
+    }));
+  }
+
+  const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+
+  function drawBg(){
+    ctx.clearRect(0,0,W,H);
+    t += .004;
+
+    orbs.forEach(o => {
+      o.x += o.vx + Math.sin(t+o.phase)*.1;
+      o.y += o.vy + Math.cos(t+o.phase*.8)*.08;
+      if(o.x < -o.r) o.x = W+o.r;
+      if(o.x > W+o.r) o.x = -o.r;
+      if(o.y < -o.r) o.y = H+o.r;
+      if(o.y > H+o.r) o.y = -o.r;
+      const alpha = isLight() ? .13 : .11;
+      const g = ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
+      g.addColorStop(0, `rgba(${o.color},${alpha})`);
+      g.addColorStop(1, `rgba(${o.color},0)`);
+      ctx.beginPath(); ctx.arc(o.x,o.y,o.r,0,Math.PI*2);
+      ctx.fillStyle = g; ctx.fill();
+    });
+
+    const parallaxX = (mx - W/2) * .00007;
+    const parallaxY = (my - H/2) * .00007;
+    particles.forEach(p => {
+      p.x += p.vx + parallaxX;
+      p.y += p.vy + parallaxY;
+      if(p.x < 0) p.x = W; if(p.x > W) p.x = 0;
+      if(p.y < 0) p.y = H; if(p.y > H) p.y = 0;
+      const alpha = isLight() ? p.a*.35 : p.a*.6;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(157,124,255,${alpha})`; ctx.fill();
+    });
+
+    // Subtle aurora streaks
+    if(!isLight()){
+      [0,1].forEach(i => {
+        const y = H*.3 + i*H*.4;
+        const x0 = W*.1 + Math.sin(t*.3+i)*W*.1;
+        const g2 = ctx.createLinearGradient(x0, y, x0+W*.6, y+30);
+        g2.addColorStop(0,'rgba(109,93,246,0)');
+        g2.addColorStop(.5,`rgba(109,93,246,${.03+Math.sin(t+i)*.01})`);
+        g2.addColorStop(1,'rgba(109,93,246,0)');
+        ctx.fillStyle = g2;
+        ctx.fillRect(x0, y, W*.6, 60);
+      });
+    }
+
+    requestAnimationFrame(drawBg);
+  }
+
+  window.addEventListener('resize', () => { resize(); initOrbs(); initParticles(); });
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  resize(); initOrbs(); initParticles(); drawBg();
+
+  // ═══════════════════════════════════════════════════════
+  // THEME
+  // ═══════════════════════════════════════════════════════
+  let theme = localStorage.getItem('wobble-theme') || 'dark';
+
+  function applyTheme(){
+    const light = theme === 'light';
+    document.documentElement.setAttribute('data-theme', light ? 'light' : '');
+    document.getElementById('theme-icon').textContent = light ? '🌙' : '☀';
+    document.getElementById('theme-label').textContent = light ? 'Dark' : 'Light';
+    localStorage.setItem('wobble-theme', theme);
+  }
+
+  function toggleTheme(){
+    theme = theme === 'dark' ? 'light' : 'dark';
+    applyTheme();
+  }
+
+  applyTheme();
+
+  // ═══════════════════════════════════════════════════════
+  // SUBTITLE RANDOMIZER
+  // ═══════════════════════════════════════════════════════
+  const subs = ['See It. Understand It. Master It.', 'Turn formulas into understanding.'];
+  document.getElementById('header-sub').textContent = subs[Math.floor(Math.random()*subs.length)];
+
+  // ═══════════════════════════════════════════════════════
+  // FILE HANDLING
+  // ═══════════════════════════════════════════════════════
+  let selectedFile = null, selectedDataUrl = null;
+
+  function handleFile(e){
+    const f = e.target.files[0];
+    if(!f) return;
+    attachFile(f);
+  }
+
+  function attachFile(f){
+    selectedFile = f;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      selectedDataUrl = ev.target.result;
+      document.getElementById('img-thumb').src = selectedDataUrl;
+      document.getElementById('img-name').textContent = f.name.length>28 ? f.name.slice(0,25)+'…' : f.name;
+      document.getElementById('img-preview-row').classList.add('visible');
+    };
+    reader.readAsDataURL(f);
+  }
+
+  function removeImage(){
+    selectedFile = null; selectedDataUrl = null;
+    document.getElementById('img-preview-row').classList.remove('visible');
+    document.getElementById('file-input').value = '';
+  }
+
+  // Drag & drop
+  const iw = document.getElementById('input-wrap');
+  iw.addEventListener('dragover', e => { e.preventDefault(); iw.classList.add('drag-over'); });
+  iw.addEventListener('dragleave', () => iw.classList.remove('drag-over'));
+  iw.addEventListener('drop', e => {
+    e.preventDefault(); iw.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if(f && f.type.startsWith('image/')) attachFile(f);
+  });
+
+  // ═══════════════════════════════════════════════════════
+  // LATEX & MARKDOWN RENDERING
+  // ═══════════════════════════════════════════════════════
+  function safeEscape(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderContent(text){
+    // We'll process block $$ first, then inline
+    let result = '';
+    const parts = text.split(/(```[\s\S]*?```|\$\$[\s\S]*?\$\$|\\\([\s\S]*?\\\)|\$[^\$\n]+\$)/g);
+    parts.forEach(part => {
+      if(part.startsWith('$$') && part.endsWith('$$')){
+        const eq = part.slice(2,-2).trim();
+        const uid = Math.random().toString(36).slice(2,8);
+        try{
+          const rendered = katex.renderToString(eq, {displayMode:true, throwOnError:false});
+          result += `<div class="formula-block">
+          <button class="copy-btn" id="cb-${uid}" onclick="copyTex(this,'${encodeURIComponent(eq)}')">Copy LaTeX</button>
+          ${rendered}
+        </div>`;
+        }catch{result += `<div class="formula-block"><code>${safeEscape(eq)}</code></div>`;}
+      } else if(part.startsWith('\\(') && part.endsWith('\\)')){
+        const eq = part.slice(2,-2).trim();
+        try{ result += katex.renderToString(eq, {throwOnError:false}); }
+        catch{ result += `<code>${safeEscape(eq)}</code>`; }
+      } else if(part.startsWith('$') && part.endsWith('$') && part.length>2){
+        const eq = part.slice(1,-1).trim();
+        try{ result += katex.renderToString(eq, {throwOnError:false}); }
+        catch{ result += `<code>${safeEscape(eq)}</code>`; }
+      } else if(part.startsWith('```') && part.endsWith('```')){
+        const lines = part.slice(3,-3).split('\n');
+        const lang = lines[0].trim();
+        const code = lines.slice(1).join('\n');
+        result += `<div class="formula-block" style="font-family:'JetBrains Mono','Fira Code',monospace;font-size:.82rem"><pre style="margin:0;white-space:pre-wrap">${safeEscape(code||lang)}</pre></div>`;
+      } else {
+        // Inline markdown: **bold**, *italic*, `code`, newlines
+        let p = safeEscape(part);
+        p = p.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+        p = p.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+        p = p.replace(/`([^`]+)`/g, '<code>$1</code>');
+        p = p.replace(/\n/g, '<br>');
+        result += p;
+      }
+    });
+    return result;
+  }
+
+  function copyTex(btn, encoded){
+    const text = decodeURIComponent(encoded);
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy LaTeX'; btn.classList.remove('copied'); }, 1600);
+    }).catch(() => { btn.textContent = 'Copy failed'; });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // CHAT STATE
+  // ═══════════════════════════════════════════════════════
+  let messages = [], isLoading = false;
+
+  function showEmpty(v){
+    document.getElementById('empty-state').style.display = v ? 'flex' : 'none';
+  }
+
+  function scrollBottom(){
+    const ca = document.getElementById('chat-area');
+    setTimeout(() => { ca.scrollTop = ca.scrollHeight; }, 60);
+  }
+
+  function autoResize(ta){
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 130) + 'px';
+  }
+
+  function handleKey(e){
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+  }
+
+  function useSuggestion(txt){
+    const ti = document.getElementById('text-input');
+    ti.value = txt;
+    autoResize(ti);
+    sendMessage();
+  }
+
+  // ─── Add user message ───────────────────────────────────
+  function addUserMessage(text, imgUrl){
+    showEmpty(false);
+    const ca = document.getElementById('chat-area');
+    const row = document.createElement('div');
+    row.className = 'msg-row user';
+    if(imgUrl){
+      const img = document.createElement('img');
+      img.className = 'img-preview-bubble';
+      img.src = imgUrl;
+      img.alt = 'uploaded image';
+      row.appendChild(img);
+    }
+    if(text){
+      const b = document.createElement('div');
+      b.className = 'bubble user';
+      b.textContent = text;
+      row.appendChild(b);
+    }
+    ca.appendChild(row);
+    scrollBottom();
+  }
+
+  // ─── Add AI message ─────────────────────────────────────
+  function addAIMessage(text){
+    const ca = document.getElementById('chat-area');
+    const row = document.createElement('div');
+    row.className = 'msg-row ai';
+    const b = document.createElement('div');
+    b.className = 'bubble ai';
+    b.innerHTML = renderContent(text);
+    row.appendChild(b);
+    ca.appendChild(row);
+    scrollBottom();
+    return b;
+  }
+
+  // ─── Typing indicator ───────────────────────────────────
+  function showTyping(){
+    const ca = document.getElementById('chat-area');
+    const row = document.createElement('div');
+    row.className = 'msg-row ai'; row.id = 'typing-row';
+    const tb = document.createElement('div');
+    tb.className = 'typing-bubble';
+    tb.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+    row.appendChild(tb);
+    ca.appendChild(row);
+    scrollBottom();
+  }
+
+  function hideTyping(){
+    const t = document.getElementById('typing-row');
+    if(t) t.remove();
+  }
+
+  function setLoading(v){
+    isLoading = v;
+    document.getElementById('send-btn').disabled = v;
+  }
+
+  // ─── Build API messages ─────────────────────────────────
+  function buildApiMessages(){
+    return messages.map(m => {
+      if(m.role === 'user'){
+        const content = [];
+        if(m.img){
+          const b64 = m.img.split(',')[1];
+          const mime = m.img.match(/data:([^;]+)/)[1];
+          content.push({ type:'image', source:{ type:'base64', media_type:mime, data:b64 }});
+        }
+        if(m.text) content.push({ type:'text', text:m.text });
+        if(content.length === 1 && content[0].type === 'text') return { role:'user', content:m.text };
+        return { role:'user', content };
+      }
+      return { role:'assistant', content:m.text };
+    });
+  }
+
+  // ─── Backend base URL — change if your server runs elsewhere ──
+  const API_BASE = 'http://localhost:8080';
+
+  // ─── Send message ─────────────────────────────────────────────
+  async function sendMessage(){
+    if(isLoading) return;
+    const input = document.getElementById('text-input');
+    const userText = input.value.trim();
+    const imgUrl   = selectedDataUrl;
+    const imgFile  = selectedFile;
+
+    if(!userText && !imgFile) return;
+
+    messages.push({ role:'user', text:userText, img:imgUrl });
+    addUserMessage(userText, imgUrl);
+
+    input.value = '';
+    autoResize(input);
+    removeImage();
+    showTyping();
+    setLoading(true);
+
+    try {
+
+      // ════════════════════════════════════════
+      // IMAGE WORKFLOW  →  /api/image/extract
+      //                 →  /api/image/explain  (per formula)
+      // ════════════════════════════════════════
+      if(imgFile){
+
+        // Step 1 ── POST image as multipart/form-data (matches @RequestParam("file") MultipartFile)
+        const formData = new FormData();
+        formData.append('file', imgFile);
+
+        const extractResp = await fetch(`${API_BASE}/api/image/extract`, {
+          method: 'POST',
+          body: formData
+          // Do NOT set Content-Type header — browser sets it with boundary automatically
+        });
+
+        if(!extractResp.ok){
+          throw new Error(`Extraction failed (${extractResp.status} ${extractResp.statusText})`);
+        }
+
+        const extractData = await extractResp.json();
+
+        // Build the response progressively
+        let finalMessage = '';
+
+        if(extractData.title){
+          finalMessage += `## ${extractData.title}\n\n`;
+        }
+        if(extractData.text){
+          finalMessage += `${extractData.text}\n\n`;
+        }
+
+        const latexList = Array.isArray(extractData.latex) ? extractData.latex : [];
+
+        if(latexList.length === 0 && !extractData.text){
+          finalMessage += `**No mathematical content detected.**\n\nTry a clearer image that contains equations or formulas visible as text.`;
+        }
+
+        // Step 2 ── Explain each formula individually
+        for(const formula of latexList){
+          try{
+            const explainResp = await fetch(`${API_BASE}/api/image/explain`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ latex: formula })
+            });
+
+            if(!explainResp.ok) continue;
+            const expl = await explainResp.json();
+
+            if(expl.title)       finalMessage += `### ${expl.title}\n\n`;
+            if(expl.explanation) finalMessage += `${expl.explanation}\n\n`;
+
+            // Render the formula as a display block
+            finalMessage += `$$${formula}$$\n\n`;
+
+            if(expl.variables && Object.keys(expl.variables).length > 0){
+              finalMessage += `**Variables:**\n`;
+              Object.entries(expl.variables).forEach(([sym, meaning]) => {
+                finalMessage += `• $${sym}$ — ${meaning}\n`;
+              });
+              finalMessage += '\n';
+            }
+          } catch(_){ /* skip a single failed explain and continue */ }
+        }
+
+        // If user also typed a question alongside the image
+        if(userText && extractData.answer){
+          finalMessage += `---\n\n**Your question:** ${userText}\n\n${extractData.answer}`;
+        }
+
+        hideTyping();
+        messages.push({ role:'assistant', text: finalMessage });
+        addAIMessage(finalMessage);
+
+        // ════════════════════════════════════════
+        // TEXT-ONLY WORKFLOW  →  /api/chat
+        // ════════════════════════════════════════
+      } else {
+
+        const chatResp = await fetch(`${API_BASE}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userText,
+            // send conversation history so your backend can be context-aware
+            history: messages.slice(0, -1).map(m => ({
+              role: m.role,
+              content: m.text || ''
+            }))
+          })
+        });
+
+        if(!chatResp.ok){
+          throw new Error(`Chat endpoint failed (${chatResp.status} ${chatResp.statusText})`);
+        }
+
+        const chatData = await chatResp.json();
+        hideTyping();
+
+        // Accept whichever field your backend returns: reply / message / text / answer / response
+        const reply =
+                chatData.reply   ||
+                chatData.message ||
+                chatData.text    ||
+                chatData.answer  ||
+                chatData.response||
+                '';
+
+        if(!reply){
+          throw new Error('Backend returned an empty response — check your /api/chat endpoint.');
+        }
+
+        messages.push({ role:'assistant', text: reply });
+        addAIMessage(reply);
+      }
+
+    } catch(err){
+      hideTyping();
+      console.error('[Wobble]', err);
+
+      const isNetwork = err.message.includes('Failed to fetch') ||
+              err.message.includes('NetworkError')    ||
+              err.message.includes('ECONNREFUSED');
+
+      const errMsg = isNetwork
+              ? `**Cannot reach backend** — make sure your Spring Boot server is running on \`${API_BASE}\`.\n\n_${err.message}_`
+              : `**Error:** ${err.message}`;
+
+      messages.push({ role:'assistant', text: errMsg });
+      addAIMessage(errMsg);
+    }
+
+    setLoading(false);
+    scrollBottom();
+  }
+</script>
+</body>
+</html>
